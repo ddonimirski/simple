@@ -16,7 +16,7 @@ template<class T>
 class function_mv;
 
 template<class Ret, class ...Args>
-class function_mv<Ret(Args...)>
+class function_mv<Ret(Args...)> final
 {
     using invoke_fn_type = Ret(*)(void*, Args&&...);
     using create_fn_type = void(*)(void*, void*);
@@ -59,7 +59,7 @@ class function_mv<Ret(Args...)>
         return invoke_(data_.get(), std::forward<Args>(args)...);
     }
 
-    function_mv()
+    function_mv() noexcept
         : data_{}
         , invoke_(nullptr)
         , destroy_(nullptr)
@@ -91,14 +91,15 @@ class function_mv<Ret(Args...)>
     }
 
     template<class Functor>
-    function_mv(function_mv<Functor>&& fn_mv):function_mv()
+    function_mv(function_mv<Functor>&& fn_mv) noexcept
+        :function_mv()
     {
         swap(std::forward<function_mv<Functor>>(fn_mv));
     }
 
 
     template<class Functor>
-    auto operator = (function_mv<Functor>&& fn_mv) -> function_mv& 
+    auto operator = (function_mv<Functor>&& fn_mv) noexcept -> function_mv& 
     {
         swap(std::forward<function_mv<Functor>>(fn_mv));
         return *this;
@@ -114,7 +115,7 @@ class function_mv<Ret(Args...)>
 
 
     template<class Functor>
-    void swap(function_mv<Functor>&& fn_mv)
+    void swap(function_mv<Functor>&& fn_mv) noexcept
     {
         data_.swap(fn_mv.data_);
         std::swap(invoke_, fn_mv.invoke_);
